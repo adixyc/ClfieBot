@@ -47,7 +47,7 @@ def run_bot():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome))
-     app.add_handler(MessageHandler(filters.ALL, auto_delete))
+    app.add_handler(MessageHandler(filters.ALL, auto_delete))
 
     app.run_polling()
 
