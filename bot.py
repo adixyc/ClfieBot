@@ -43,7 +43,7 @@ bot_app.add_handler(MessageHandler(filters.ALL, a))
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Welcome to Auto Delete Bot. I can delete all group messages without keeping a single trace within 60 seconds.")
 
-bot_app = ApplicationBuilder().token(os.getenv("8359980681:AAGtSb-Su8zg6MGuKPGBR73gCEj52sPVfNY)).build()
+bot_app = ApplicationBuilder().token(os.getenv("8359980681:AAGtSb-Su8zg6MGuKPGBR73gCEj52sPVfNY")).build()
 
 bot_app.add_handler(CommandHandler("start", start))
 bot_app.add_handler(MessageHandler(~filters.COMMAND, auto_delete))
