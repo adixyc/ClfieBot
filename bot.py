@@ -4,7 +4,9 @@ from flask import Flask
 from threading import Thread
 from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, ContextTypes, filters
+from telegram.ext import CommandHandler
 
+# ------------------------------------------------------------------------------------------
 flask_app = Flask(__name__)
 
 @flask_app.route('/')
@@ -17,7 +19,8 @@ def run():
 
 def keep_alive():
     Thread(target=run).start()
-
+    
+# ---------------------------------------------------------------------------------- 
 DELETE_AFTER = 60
 
 async def a(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -35,5 +38,18 @@ async def a(update: Update, context: ContextTypes.DEFAULT_TYPE):
 bot_app = ApplicationBuilder().token(os.getenv("8359980681:AAGtSb-Su8zg6MGuKPGBR73gCEj52sPVfNY")).build()
 bot_app.add_handler(MessageHandler(filters.ALL, a))
 
+# -----------------------------------------------------------------------------
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Welcome to Auto Delete Bot. I can delete all group messages without keeping a single trace within 60 seconds.")
+
+bot_app = ApplicationBuilder().token(os.getenv("8359980681:AAGtSb-Su8zg6MGuKPGBR73gCEj52sPVfNY)).build()
+
+bot_app.add_handler(CommandHandler("start", start))
+bot_app.add_handler(MessageHandler(~filters.COMMAND, auto_delete))
+
+#-----------------------------
+
+                                               
 keep_alive()
 bot_app.run_polling()
