@@ -1,4 +1,4 @@
-```python
+
 import os
 import asyncio
 from flask import Flask
@@ -63,4 +63,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-```
+
