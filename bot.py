@@ -6,6 +6,7 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
+print("BOT TOKEN:", BOT_TOKEN)
 
 app_web = Flask(__name__)
 
@@ -41,15 +42,20 @@ async def auto_delete(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ---
 
 def run_bot():
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+    try:
+        print("Starting Celfie Bot...")
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
 
-    app = ApplicationBuilder().token(BOT_TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome))
-    app.add_handler(MessageHandler(filters.ALL, auto_delete))
+        app = ApplicationBuilder().token(BOT_TOKEN).build()
+        app.add_handler(CommandHandler("start", start))
+        app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome))
+        app.add_handler(MessageHandler(filters.ALL, auto_delete))
 
-    app.run_polling()
+        app.run_polling()
+
+    except Exception as e:
+        print("BOT ERROR:", e)
 
 threading.Thread(target=run_bot).start()
 
