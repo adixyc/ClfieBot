@@ -1,29 +1,37 @@
+```python
 import os
 import asyncio
 from flask import Flask
 from threading import Thread
 from telegram import Update
-from telegram.ext import ApplicationBuilder, MessageHandler, ContextTypes, filters
-from telegram.ext import CommandHandler
+from telegram.ext import ApplicationBuilder, MessageHandler, CommandHandler, ContextTypes, filters
 
-# ------------------------------------------------------------------------------------------
+# ------------------- Flask Web Service -------------------
 flask_app = Flask(__name__)
 
 @flask_app.route('/')
 def home():
-    return "adubot is alive"
+    return "Auto-delete bot is alive"
 
-def run():
+def run_web():
     port = int(os.environ.get("PORT", 10000))
     flask_app.run(host='0.0.0.0', port=port)
 
 def keep_alive():
-    Thread(target=run).start()
-    
-# ---------------------------------------------------------------------------------- 
-DELETE_AFTER = 60
+    Thread(target=run_web).start()
 
-async def a(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# ------------------- Bot Config -------------------
+DELETE_AFTER = 60  # seconds
+BOT_TOKEN = os.getenv("BOT_TOKEN") 
+
+# ------------------- Commands -------------------
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        f"Bot is active.\nMessages will auto-delete after {DELETE_AFTER} seconds."
+    )
+
+# ------------------- Auto Delete Logic -------------------
+async def auto_delete(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     msg_id = update.message.message_id
 
@@ -31,25 +39,28 @@ async def a(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
         await context.bot.delete_message(chat_id=chat_id, message_id=msg_id)
-        print(f"Deleted {msg_id}")
+        print(f"Deleted message {msg_id}")
     except Exception as e:
         print("Delete failed:", e)
 
-bot_app = ApplicationBuilder().token(os.getenv("8359980681:AAGtSb-Su8zg6MGuKPGBR73gCEj52sPVfNY")).build()
-bot_app.add_handler(MessageHandler(filters.ALL, a))
+# ------------------- Main -------------------
+def main():
+    if not BOT_TOKEN:
+        print("BOT_TOKEN environment variable not set.")
+        return
 
-# -----------------------------------------------------------------------------
+    bot_app = ApplicationBuilder().token(BOT_TOKEN).build()
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Welcome to Auto Delete Bot. I can delete all group messages without keeping a single trace within 60 seconds.")
+    # handlers
+    bot_app.add_handler(CommandHandler("start", start))
+    bot_app.add_handler(MessageHandler(~filters.COMMAND, auto_delete))
 
-bot_app = ApplicationBuilder().token(os.getenv("8359980681:AAGtSb-Su8zg6MGuKPGBR73gCEj52sPVfNY")).build()
+    # start flask server
+    keep_alive()
 
-bot_app.add_handler(CommandHandler("start", start))
-bot_app.add_handler(MessageHandler(~filters.COMMAND, auto_delete))
+    # start telegram bot
+    bot_app.run_polling(drop_pending_updates=True)
 
-#-----------------------------
-
-                                               
-keep_alive()
-bot_app.run_polling()
+if __name__ == "__main__":
+    main()
+```
