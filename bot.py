@@ -1,33 +1,37 @@
+import os
+import threading
+import asyncio
+from flask import Flask
 from telegram import Update
-from telegram.ext import (
-    ApplicationBuilder,
-    MessageHandler,
-    CommandHandler,
-    ContextTypes,
-    filters
-)
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 
 BOT_TOKEN = "8597105923:AAF9m8C4k5UVYlJCm7vGbN9vdYvjdiQt5VU"
 
-# /start command
+app_web = Flask(__name__)
+
+@app_web.route('/')
+def home():
+    return "Bot is running!"
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
-    await update.message.reply_text(
-        f"Hello {user.first_name}! 👋\n"
-        f"I'm alive and ready to serve this group."
-    )
+    await update.message.reply_text(f"Hello {user.first_name}! 👋")
 
-# Welcome new members
 async def welcome(update: Update, context: ContextTypes.DEFAULT_TYPE):
     for member in update.message.new_chat_members:
-        await update.message.reply_text(
-            f"{member.first_name} JUST UNLOCKED FRIENDS CHATTING GROUP."
-        )
+        await update.message.reply_text(f"Welcome {member.first_name}! 🎉")
 
-app = ApplicationBuilder().token(BOT_TOKEN).build()
+def run_bot():
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
 
-app.add_handler(CommandHandler("start", start))
-app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome))
+    app = ApplicationBuilder().token(BOT_TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome))
 
-print("Bot is running...")
-app.run_polling()
+    app.run_polling()
+
+threading.Thread(target=run_bot).start()
+
+port = int(os.environ.get("PORT", 10000))
+app_web.run(host="0.0.0.0", port=port)
